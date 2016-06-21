@@ -9,9 +9,14 @@
 .svg-tooltip .box {
   fill: black;
 }
-.svg-tooltip .text {
+.svg-tooltip text {
   fill: white;
   stroke: none;
   text-anchor: middle;
-  dominant-baseline: center;
+  alignment-baseline: central;
+}
+
+.svg-tooltip tspan {
+  text-anchor: middle;
+  alignment-baseline: central;
 }

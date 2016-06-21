@@ -3,11 +3,13 @@ var SVGTip = function (options) {
     return x === undefined ? d : x;
   };
 
-  var content = getDefault(options.content, '');
-  var style = getDefault(options.style, '');
-  var parent = getDefault(options.parent, d3.select('svg'));
-  var padding = getDefault(options.padding, 5);
-  var tipSize = getDefault(options.tipSize, 5);
+  var isArray = function (value) {
+    return value &&
+      typeof value === 'object' &&
+      typeof value.length === 'number' &&
+      typeof value.splice === 'function' &&
+      !(value.propertyIsEnumerable('length'));
+  };
 
   var polygon = function (coord, box, tip) {
     var x = coord.x;
@@ -31,6 +33,13 @@ var SVGTip = function (options) {
     return 'translate(' + coord[0] + ',' + coord[1] + ')';
   };
 
+  var content = getDefault(options.content, '');
+  var style = getDefault(options.style, '');
+  var parent = getDefault(options.parent, d3.select('svg'));
+  var padding = getDefault(options.padding, 5);
+  var tipSize = 5;
+  var lineHeight = 1.2;
+
   var tooltip = parent.append('g')
     .attr('class', 'svg-tooltip');
 
@@ -52,9 +61,26 @@ var SVGTip = function (options) {
       .on('mouseout', hide)
       .on('mousemove', function (d, i) {
         var point = d3.mouse(parent.node());
-        var c = ((typeof content === 'function') ? content(d, i) : content);
+
+        tooltip.text.selectAll('tspan').remove();
+
+        var lines = ((typeof content === 'function') ? content(d, i) : content);
+
+        if (!isArray(lines)) {
+          lines = [lines];
+        }
+          lines.forEach(function (line) {
+            tooltip.text
+              .append('tspan')
+              .text(line)
+              .attr({
+                x: 0,
+                dy: lineHeight + 'em'
+              });
+          });
+
         var s = ((typeof style === 'function') ? style(d, i) : style);
-        tooltip.text.html(c).style(s);
+        tooltip.text.style(s);
         tooltip.attr('transform', translate(point));
         var bbox = tooltip.text.node().getBBox();
         tooltip.box.attr('points', polygon({
@@ -62,7 +88,7 @@ var SVGTip = function (options) {
           y: 0
         }, bbox, tipSize));
         tooltip.text.attr({
-          y: -(bbox.height + (padding * 2)) / 2,
+          y: -((lines.length + 1) * lineHeight) + 'em',
           x: 0
         });
       });

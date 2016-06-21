@@ -41,14 +41,15 @@ var example = function () {
     .attr('fill', 'blue')
     .call(SVGTip({
       content: function (d, i) {
-        return d[0] + '; ' + d[1] + ' @ ' + i;
+        return ['x: ' + d[0], 'y: ' + d[1], 'Index ' + i];
       },
-      padding: 5
+      padding: 2
     }));
 
   var curveTip = SVGTip({
     content: function () {
-      return d3.mouse(vis.node());
+      var coord = d3.mouse(vis.node());
+      return coord[0] + ',' + coord[1];
     },
     style: {
       'font-family': 'monospace',
