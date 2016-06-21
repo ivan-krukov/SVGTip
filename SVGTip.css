@@ -1,0 +1,17 @@
+.svg-tooltip {
+  text-align: center;
+  font: 12px sans-serif;
+  fill: black;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.svg-tooltip .box {
+  fill: black;
+}
+.svg-tooltip .text {
+  fill: white;
+  stroke: none;
+  text-anchor: middle;
+  dominant-baseline: center;
+}
