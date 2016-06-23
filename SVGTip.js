@@ -11,19 +11,11 @@ var SVGTip = function (options) {
       !(value.propertyIsEnumerable('length'));
   };
 
-  var polygon = function (coord, box, tip) {
-    var x = coord.x;
-    var y = coord.y;
-    var width = box.width + (padding * 2);
-    var height = box.height + (padding * 2);
+  var tip = function (x, y) {
     return [
       [x, y],
-      [x + tip, y - tip],
-      [x + (width / 2), y - tip],
-      [x + (width / 2), y - tip - height],
-      [x - (width / 2), y - tip - height],
-      [x - (width / 2), y - tip],
-      [x - tip, y - tip]
+      [x + 3, y - 4],
+      [x - 3, y - 4]
     ].map(function (x) {
       return x.join(',');
     }).join(' ');
@@ -36,15 +28,22 @@ var SVGTip = function (options) {
   var content = getDefault(options.content, '');
   var style = getDefault(options.style, '');
   var parent = getDefault(options.parent, d3.select('svg'));
-  var padding = getDefault(options.padding, 5);
-  var tipSize = 5;
-  var lineHeight = 1.2;
+  var padding = 3; //px
+  var cornerRadius = 5; //px
+  var lineHeight = 1.2; //em
 
   var tooltip = parent.append('g')
     .attr('class', 'svg-tooltip');
 
-  tooltip.box = tooltip.append('polygon')
-    .attr('class', 'box');
+  tooltip.container = tooltip.append('g');
+  tooltip.tip = tooltip.container.append('polygon').attr('class', 'tip');
+  tooltip.box = tooltip.container.append('rect')
+    .attr({
+      class: 'box',
+      rx: cornerRadius,
+      ry: cornerRadius
+    });
+
   tooltip.text = tooltip.append('text')
     .attr('class', 'text');
 
@@ -59,37 +58,43 @@ var SVGTip = function (options) {
   return function (selection) {
     selection.on('mouseover', show)
       .on('mouseout', hide)
-      .on('mousemove', function (d, i) {
+      .on('mousemove', function (d, n) {
         var point = d3.mouse(parent.node());
+        point.x = point[0];
+        point.y = point[1];
 
         tooltip.text.selectAll('tspan').remove();
 
-        var lines = ((typeof content === 'function') ? content(d, i) : content);
+        var lines = ((typeof content === 'function') ? content(d, n) : content);
+        if (!isArray(lines)) lines = [lines];
+        var s = ((typeof style === 'function') ? style(d, n) : style);
 
-        if (!isArray(lines)) {
-          lines = [lines];
-        }
-          lines.forEach(function (line) {
-            tooltip.text
-              .append('tspan')
-              .text(line)
-              .attr({
-                x: 0,
-                dy: lineHeight + 'em'
-              });
+        lines.forEach(function (line) {
+          tooltip.text.append('tspan').text(line).attr({
+            x: 0,
+            dy: lineHeight + 'em'
           });
+          tooltip.text.style(s);
+        });
 
-        var s = ((typeof style === 'function') ? style(d, i) : style);
-        tooltip.text.style(s);
-        tooltip.attr('transform', translate(point));
         var bbox = tooltip.text.node().getBBox();
-        tooltip.box.attr('points', polygon({
-          x: 0,
-          y: 0
-        }, bbox, tipSize));
-        tooltip.text.attr({
-          y: -((lines.length + 1) * lineHeight) + 'em',
-          x: 0
+
+        tooltip.attr('transform',
+          translate([
+            point.x,
+            point.y - (bbox.height + bbox.y + padding + 4)
+          ]));
+
+        tooltip.tip.attr({
+          points: tip(
+            bbox.x + (bbox.width / 2),
+            bbox.y + bbox.height + padding + 4)
+        });
+        tooltip.box.attr({
+          x: bbox.x - padding,
+          y: bbox.y - padding,
+          width: bbox.width + (padding * 2),
+          height: bbox.height + (padding * 2)
         });
       });
   };

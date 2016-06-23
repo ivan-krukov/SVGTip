@@ -6,17 +6,21 @@
   pointer-events: none;
 }
 
-.svg-tooltip .box {
+.svg-tooltip .box .tip {
   fill: black;
+  opacity: 0.8;
+  corner-radius: 2;
 }
+
 .svg-tooltip text {
   fill: white;
   stroke: none;
   text-anchor: middle;
-  alignment-baseline: central;
+  alignment-baseline: middle;
+  text-anchor: middle;
 }
 
 .svg-tooltip tspan {
   text-anchor: middle;
-  alignment-baseline: central;
+  alignment-baseline: middle;
 }
